@@ -1,6 +1,7 @@
 
 from flask import Flask, render_template, request, redirect, url_for, flash
 from database import get_connection
+from datetime import date
 
 app = Flask(__name__)
 app.secret_key = "todo_app_secret_key"
@@ -17,16 +18,50 @@ def index():
     cursor.close()
     connection.close()
 
+    today = date.today()
+
     total_tasks = len(tasks)
-    completed_tasks = sum(1 for task in tasks if task["status"] == "Completed")
-    pending_tasks = total_tasks - completed_tasks
+
+    completed_tasks = sum(
+        1 for task in tasks
+        if task["status"] == "Completed"
+    )
+
+    pending_tasks = sum(
+        1 for task in tasks
+        if task["status"] == "Pending"
+    )
+
+    due_today_tasks = [
+        task for task in tasks
+        if task["status"] == "Pending"
+        and task["due_date"] == today
+    ]
+
+    overdue_tasks = [
+        task for task in tasks
+        if task["status"] == "Pending"
+        and task["due_date"] is not None
+        and task["due_date"] < today
+    ]
+
+    upcoming_tasks = [
+        task for task in tasks
+        if task["status"] == "Pending"
+        and task["due_date"] is not None
+        and task["due_date"] > today
+    ]
 
     return render_template(
         "index.html",
         tasks=tasks,
         total_tasks=total_tasks,
         completed_tasks=completed_tasks,
-        pending_tasks=pending_tasks
+        pending_tasks=pending_tasks,
+        due_today_tasks=due_today_tasks,
+        overdue_tasks=overdue_tasks,
+        upcoming_tasks=upcoming_tasks,
+        today=today
     )
 
 
