@@ -4,18 +4,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart To-Do App</title>
+    <title>Smart Task Manager</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
     <div class="container">
+
         <header>
-            <h1>Smart To-Do App</h1>
+            <h1>Smart Task Manager</h1>
             <p>Organize your tasks and achieve your goals.</p>
         </header>
 
         <section class="stats">
+
             <div class="stat-card">
                 <h3>Total Tasks</h3>
                 <p>{{ total_tasks }}</p>
@@ -30,6 +32,12 @@
                 <h3>Pending</h3>
                 <p>{{ pending_tasks }}</p>
             </div>
+
+            <div class="stat-card">
+                <h3>Overdue</h3>
+                <p>{{ overdue_tasks|length }}</p>
+            </div>
+
         </section>
 
         {% with messages = get_flashed_messages() %}
@@ -40,15 +48,62 @@
             {% endif %}
         {% endwith %}
 
+        <section class="reminder-section">
+
+            <h2>Task Reminders</h2>
+
+            <div class="reminder-card due-today">
+                <h3>Due Today ({{ due_today_tasks|length }})</h3>
+
+                {% if due_today_tasks %}
+                    {% for task in due_today_tasks %}
+                        <p>{{ task.title }} - Deadline is today!</p>
+                    {% endfor %}
+                {% else %}
+                    <p>No tasks due today.</p>
+                {% endif %}
+            </div>
+
+            <div class="reminder-card overdue">
+                <h3>Overdue Tasks ({{ overdue_tasks|length }})</h3>
+
+                {% if overdue_tasks %}
+                    {% for task in overdue_tasks %}
+                        <p>{{ task.title }} - Deadline has passed!</p>
+                    {% endfor %}
+                {% else %}
+                    <p>No overdue tasks.</p>
+                {% endif %}
+            </div>
+
+            <div class="reminder-card upcoming">
+                <h3>Upcoming Tasks ({{ upcoming_tasks|length }})</h3>
+
+                {% if upcoming_tasks %}
+                    {% for task in upcoming_tasks %}
+                        <p>{{ task.title }} - Due: {{ task.due_date }}</p>
+                    {% endfor %}
+                {% else %}
+                    <p>No upcoming tasks.</p>
+                {% endif %}
+            </div>
+
+        </section>
+
         <section class="task-form">
+
             <h2>Add a New Task</h2>
 
             <form action="{{ url_for('add_task') }}" method="POST">
-                <input type="text" name="title" placeholder="Enter task title" required>
 
-                <textarea name="description" placeholder="Task description"></textarea>
+                <input type="text" name="title"
+                       placeholder="Enter task title" required>
+
+                <textarea name="description"
+                          placeholder="Task description"></textarea>
 
                 <label>Priority</label>
+
                 <select name="priority">
                     <option value="High">High</option>
                     <option value="Medium" selected>Medium</option>
@@ -56,46 +111,68 @@
                 </select>
 
                 <label>Due Date</label>
+
                 <input type="date" name="due_date">
 
                 <button type="submit">Add Task</button>
+
             </form>
+
         </section>
 
         <section class="task-list">
+
             <h2>My Tasks</h2>
 
             {% if tasks %}
+
                 {% for task in tasks %}
+
                     <div class="task-card">
+
                         <div>
                             <h3>{{ task.title }}</h3>
+
                             <p>{{ task.description or "No description" }}</p>
+
                             <p>Priority: {{ task.priority }}</p>
+
                             <p>Due Date: {{ task.due_date or "Not set" }}</p>
+
                             <p>Status: {{ task.status }}</p>
                         </div>
 
                         <div class="task-actions">
+
                             <a href="{{ url_for('complete_task', task_id=task.id) }}">
+
                                 {% if task.status == "Pending" %}
                                     Mark Completed
                                 {% else %}
                                     Mark Pending
                                 {% endif %}
+
                             </a>
 
                             <a href="{{ url_for('delete_task', task_id=task.id) }}"
                                onclick="return confirm('Delete this task?')">
                                 Delete
                             </a>
+
                         </div>
+
                     </div>
+
                 {% endfor %}
+
             {% else %}
+
                 <p>No tasks yet. Add your first task!</p>
+
             {% endif %}
+
         </section>
+
     </div>
 
 </body>
